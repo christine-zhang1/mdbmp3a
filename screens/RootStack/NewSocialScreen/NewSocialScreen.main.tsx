@@ -12,8 +12,9 @@ import DateTimePickerModal from "react-native-modal-datetime-picker";
 import * as ImagePicker from "expo-image-picker";
 import { styles } from "./NewSocialScreen.styles";
 
-import firebase from "firebase/app";
-import "firebase/firestore";
+import { getApp } from "firebase/app";
+import { getFirestore, setDoc, collection, doc } from "firebase/firestore";
+import { getDownloadURL, getStorage, ref, uploadBytes } from "firebase/storage";
 import { SocialModel } from "../../../models/social";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { RootStackParamList } from "../RootStackScreen";
@@ -35,6 +36,14 @@ export default function NewSocialScreen({ navigation }: Props) {
   
   */
 
+  const [eventName, setEventName] = useState("");
+  const [eventDescription, setEventDescription] = useState("");
+  const [eventLocation, setEventLocation] = useState();
+  const [eventDate, setEventDate] = useState();
+  const [eventImage, setEventImage] = useState("");
+  const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
+  const [isSnackbarVisible, setSnackbarVisibility] = useState(false);
+
   // TODO: Follow the Expo Docs to implement the ImagePicker component.
   // https://docs.expo.io/versions/latest/sdk/imagepicker/
 
@@ -51,32 +60,91 @@ export default function NewSocialScreen({ navigation }: Props) {
 
     // Otherwise, proceed onwards with uploading the image, and then the object.
 
-    try {
+    if (eventName && eventDescription && eventLocation && eventDate && eventImage) {
+      try {
 
-      // NOTE: THE BULK OF THIS FUNCTION IS ALREADY IMPLEMENTED FOR YOU IN HINTS.TSX.
-      // READ THIS TO GET A HIGH-LEVEL OVERVIEW OF WHAT YOU NEED TO DO, THEN GO READ THAT FILE!
+        // NOTE: THE BULK OF THIS FUNCTION IS ALREADY IMPLEMENTED FOR YOU IN HINTS.TSX.
+        // READ THIS TO GET A HIGH-LEVEL OVERVIEW OF WHAT YOU NEED TO DO, THEN GO READ THAT FILE!
 
-      // (0) Firebase Cloud Storage wants a Blob, so we first convert the file path
-      // saved in our eventImage state variable to a Blob.
+        // (0) Firebase Cloud Storage wants a Blob, so we first convert the file path
+        // saved in our eventImage state variable to a Blob.
 
-      // (1) Write the image to Firebase Cloud Storage. Make sure to do this
-      // using an "await" keyword, since we're in an async function. Name it using
-      // the uuid provided below.
+        // (1) Write the image to Firebase Cloud Storage. Make sure to do this
+        // using an "await" keyword, since we're in an async function. Name it using
+        // the uuid provided below.
 
-      // (2) Get the download URL of the file we just wrote. We're going to put that
-      // download URL into Firestore (where our data itself is stored). Make sure to
-      // do this using an async keyword.
+        // (2) Get the download URL of the file we just wrote. We're going to put that
+        // download URL into Firestore (where our data itself is stored). Make sure to
+        // do this using an async keyword.
 
-      // (3) Construct & write the social model to the "socials" collection in Firestore.
-      // The eventImage should be the downloadURL that we got from (3).
-      // Make sure to do this using an async keyword.
-      
-      // (4) If nothing threw an error, then go back to the previous screen.
-      //     Otherwise, show an error.
+        // (3) Construct & write the social model to the "socials" collection in Firestore.
+        // The eventImage should be the downloadURL that we got from (3).
+        // Make sure to do this using an async keyword.
+        
+        // (4) If nothing threw an error, then go back to the previous screen.
+        //     Otherwise, show an error.
 
-    } catch (e) {
-      console.log("Error while writing social:", e);
+        const asyncAwaitNetworkRequests = async () => {
+          const object = await getFileObjectAsync(eventImage);
+          const db = getFirestore();
+          const storage = getStorage(getApp());
+          const storageRef = ref(storage, uuid() + ".jpg");
+          const result = await uploadBytes(storageRef, object as Blob);
+          const downloadURL = await getDownloadURL(result.ref);
+          const socialDoc: SocialModel = {
+            eventName: eventName,
+            eventDate: eventDate.getTime(),
+            eventLocation: eventLocation,
+            eventDescription: eventDescription,
+            eventImage: downloadURL,
+          };
+          const socialRef = collection(db, "socials");
+          await setDoc(doc(socialRef), socialDoc);
+          console.log("Finished social creation.");
+        };
+
+        asyncAwaitNetworkRequests()
+          .then(() => {
+            console.log("our async function finished running.");
+          })
+          .catch((e) => {
+            console.log("our async function threw an error:", e);
+          });
+
+      } catch (e) {
+        console.log("Error while writing social:", e);
+      }
     }
+  };
+
+  const pickImage = async () => {
+    // No permissions request is necessary for launching the image library
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.All,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
+
+    console.log(result);
+
+    if (!result.cancelled) {
+      setEventImage(result.uri);
+    }
+  };
+
+  const showDatePicker = () => {
+    setDatePickerVisibility(true);
+  };
+
+  const hideDatePicker = () => {
+    setDatePickerVisibility(false);
+  };
+
+  const handleConfirm = (date) => {
+    console.warn("A date has been picked: ", date);
+    setEventDate(date);
+    hideDatePicker();
   };
 
   const Bar = () => {
@@ -98,8 +166,30 @@ export default function NewSocialScreen({ navigation }: Props) {
         {/* Button */}
         {/* Button */}
         {/* Button */}
+        <View>
+          <Button onPress={pickImage}>
+            Select Image
+          </Button>
+        </View>
         {/* DateTimePickerModal */}
+        <View>
+          <Button onPress={showDatePicker}>
+            Select Date
+          </Button>
+          <DateTimePickerModal
+            isVisible={isDatePickerVisible}
+            mode="date"
+            onConfirm={handleConfirm}
+            onCancel={hideDatePicker}
+          />
+        </View>
         {/* Snackbar */}
+        {/* what are we supposed to use the snackbar for? */}
+        <Snackbar
+          visible={isSnackbarVisible}
+          onDismiss={() => setSnackbarVisibility(false)}>
+          Hey there! I'm a Snackbar.
+        </Snackbar>
       </View>
     </>
   );
