@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { View, FlatList } from "react-native";
 import { Appbar, Card } from "react-native-paper";
 import firebase from "firebase/app";
-import "firebase/firestore";
+import { getFirestore, query, collection, onSnapshot } from "firebase/firestore";
 import { SocialModel } from "../../../../models/social.js";
 import { styles } from "./FeedScreen.styles";
 import { StackNavigationProp } from "@react-navigation/stack";
@@ -49,7 +49,16 @@ export default function FeedScreen({ navigation }: Props) {
   */
 
   useEffect(() => {
-    
+    const db = getFirestore();
+    const q = query(collection(db, "socials"));
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+      const events : SocialModel[] = [];
+      querySnapshot.forEach((doc) => {
+          events.push(doc.data() as SocialModel);
+      });
+      setSocialModelList(events);
+    });
+    return unsubscribe;
   }, [])
 
   const renderItem = ({ item }: { item: SocialModel }) => {
@@ -77,7 +86,7 @@ export default function FeedScreen({ navigation }: Props) {
         <FlatList 
           data ={socialModelList}
           renderItem={renderItem}
-          // keyExtractor={(item) => item.id}
+          //keyExtractor={(item) => item}
         />
         {/* Return a FlatList here. You'll need to use your renderItem method. */}
       </View>

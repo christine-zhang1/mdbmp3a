@@ -23,4 +23,11 @@ export const AppStyles = StyleSheet.create({
   body: {
     fontSize: 14,
   },
+  textInput: {
+    marginTop: 10,
+    backgroundColor: COLOR_BACKGROUND,
+  },
+  button: {
+    paddingTop: 20,
+  }
 });

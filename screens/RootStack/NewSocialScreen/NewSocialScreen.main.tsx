@@ -38,7 +38,7 @@ export default function NewSocialScreen({ navigation }: Props) {
 
   const [eventName, setEventName] = useState("");
   const [eventDescription, setEventDescription] = useState("");
-  const [eventLocation, setEventLocation] = useState();
+  const [eventLocation, setEventLocation] = useState("");
   const [eventDate, setEventDate] = useState();
   const [eventImage, setEventImage] = useState("");
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
@@ -106,6 +106,7 @@ export default function NewSocialScreen({ navigation }: Props) {
         asyncAwaitNetworkRequests()
           .then(() => {
             console.log("our async function finished running.");
+            navigation.navigate("Main");
           })
           .catch((e) => {
             console.log("our async function threw an error:", e);
@@ -114,6 +115,8 @@ export default function NewSocialScreen({ navigation }: Props) {
       } catch (e) {
         console.log("Error while writing social:", e);
       }
+    } else {
+      setSnackbarVisibility(true);
     }
   };
 
@@ -151,7 +154,7 @@ export default function NewSocialScreen({ navigation }: Props) {
     return (
       <Appbar.Header>
         <Appbar.Action onPress={navigation.goBack} icon="close" />
-        <Appbar.Content title="Socials" />
+        <Appbar.Content title="Add a Social" />
       </Appbar.Header>
     );
   };
@@ -161,34 +164,62 @@ export default function NewSocialScreen({ navigation }: Props) {
       <Bar />
       <View style={{ ...styles.container, padding: 20 }}>
         {/* TextInput */}
+        <TextInput
+          label="Event Name"
+          style={styles.textInput}
+          value={eventName}
+          onChangeText={(text) => setEventName(text)}
+        />
         {/* TextInput */}
+        <TextInput
+          label="Event Location"
+          style={styles.textInput}
+          value={eventLocation}
+          onChangeText={(text) => setEventLocation(text)}
+        />
         {/* TextInput */}
+        <TextInput
+          label="Event Description"
+          style={styles.textInput}
+          value={eventDescription}
+          onChangeText={(text) => setEventDescription(text)}
+        />
         {/* Button */}
         {/* Button */}
-        {/* Button */}
-        <View>
-          <Button onPress={pickImage}>
-            Select Image
+        <View style={styles.button}>
+          <Button mode="outlined" onPress={pickImage}>
+            {eventImage ? "Change Image" : "Select Image"}
           </Button>
         </View>
         {/* DateTimePickerModal */}
-        <View>
-          <Button onPress={showDatePicker}>
-            Select Date
+        <View style={styles.button}>
+          <Button mode="outlined" onPress={showDatePicker}>
+            {eventDate ? "Change Date" : "Select Date"}
           </Button>
           <DateTimePickerModal
             isVisible={isDatePickerVisible}
-            mode="date"
+            mode="datetime"
             onConfirm={handleConfirm}
             onCancel={hideDatePicker}
           />
         </View>
+        {/* Button */}
+        <View style={styles.button}>
+          <Button mode="contained" onPress={saveEvent}>
+            Save Event
+          </Button>
+        </View>
         {/* Snackbar */}
-        {/* what are we supposed to use the snackbar for? */}
         <Snackbar
           visible={isSnackbarVisible}
-          onDismiss={() => setSnackbarVisibility(false)}>
-          Hey there! I'm a Snackbar.
+          onDismiss={() => setSnackbarVisibility(false)}
+          action={{
+            label: 'Dismiss',
+            onPress: () => {
+              setSnackbarVisibility(false)
+            },
+          }}>
+          Missing data in one or more fields
         </Snackbar>
       </View>
     </>
