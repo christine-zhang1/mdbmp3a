@@ -29,5 +29,14 @@ export const AppStyles = StyleSheet.create({
   },
   button: {
     paddingTop: 20,
+  },
+  header: {
+    backgroundColor: COLOR_BACKGROUND,
+    elevation: 0,
+  },
+  card: {
+    elevation: 2,
+    margin: 10,
+    borderRadius: 10,
   }
 });

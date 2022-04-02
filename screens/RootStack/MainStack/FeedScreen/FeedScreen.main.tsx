@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { View, FlatList } from "react-native";
-import { Appbar, Card } from "react-native-paper";
+import { Appbar, Card, Title, Paragraph, Button } from "react-native-paper";
 import firebase from "firebase/app";
 import { getFirestore, query, collection, onSnapshot } from "firebase/firestore";
 import { SocialModel } from "../../../../models/social.js";
@@ -65,14 +65,20 @@ export default function FeedScreen({ navigation }: Props) {
     // TODO: Return a Card corresponding to the social object passed in
     // to this function. On tapping this card, navigate to DetailScreen
     // and pass this social.
-
-    return null;
+    let s = item.eventLocation + " · " + new Date(item.eventDate).toLocaleString();
+    return (
+      <Card style={styles.card}
+        onPress={() => navigation.navigate("DetailScreen", {social: item})}>
+        <Card.Cover source={{ uri: item.eventImage }} />
+        <Card.Title title={item.eventName} subtitle={s} />
+      </Card>
+    );
   };
 
   const NavigationBar = () => {
     // TODO: Return an AppBar, with a title & a Plus Action Item that goes to the NewSocialScreen.
     return (
-      <Appbar.Header>
+      <Appbar.Header style={styles.header}>
         <Appbar.Content title="All Socials"/>
         <Appbar.Action icon="plus" onPress={() => navigation.navigate("NewSocialScreen")}/>
       </Appbar.Header>
@@ -84,9 +90,8 @@ export default function FeedScreen({ navigation }: Props) {
       <NavigationBar />
       <View style={styles.container}>
         <FlatList 
-          data ={socialModelList}
+          data={socialModelList.sort((a, b) => {return a.eventDate - b.eventDate;})}
           renderItem={renderItem}
-          //keyExtractor={(item) => item}
         />
         {/* Return a FlatList here. You'll need to use your renderItem method. */}
       </View>

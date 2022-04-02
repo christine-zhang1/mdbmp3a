@@ -59,7 +59,6 @@ export default function NewSocialScreen({ navigation }: Props) {
     // using the Snackbar.
 
     // Otherwise, proceed onwards with uploading the image, and then the object.
-
     if (eventName && eventDescription && eventLocation && eventDate && eventImage) {
       try {
 
@@ -85,11 +84,11 @@ export default function NewSocialScreen({ navigation }: Props) {
         //     Otherwise, show an error.
 
         const asyncAwaitNetworkRequests = async () => {
-          const object = await getFileObjectAsync(eventImage);
+          const object: Blob = (await getFileObjectAsync(eventImage)) as Blob;
           const db = getFirestore();
           const storage = getStorage(getApp());
           const storageRef = ref(storage, uuid() + ".jpg");
-          const result = await uploadBytes(storageRef, object as Blob);
+          const result = await uploadBytes(storageRef, object);
           const downloadURL = await getDownloadURL(result.ref);
           const socialDoc: SocialModel = {
             eventName: eventName,
